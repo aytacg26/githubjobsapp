@@ -7,6 +7,9 @@ const ACTIONS = {
   ERROR: 'ERROR',
 };
 
+const BASE_URL =
+  'https://cors-anywhere.herokuapp.com/https://jobs.github.com/positions.json';
+
 const reducer = (state, action) => {
   const { type, payload } = action;
 
@@ -20,12 +23,31 @@ const reducer = (state, action) => {
       return {
         ...state,
         loading: false,
-        jobs: payload.jobs,
+        jobs: payload,
       };
     case ACTIONS.ERROR:
-      return { ...state, loading: false, error: payload.error, jobs: [] };
+      return { ...state, loading: false, error: payload, jobs: [] };
     default:
       return state;
+  }
+};
+
+const getJobs = async (page, params, dispatch, axToken) => {
+  try {
+    const res = await axios.get(BASE_URL, {
+      cancelToken: axToken.token,
+      params: { markdown: true, page: page, ...params },
+    });
+
+    const jobs = await res.data;
+
+    dispatch({ type: ACTIONS.GET_DATA, payload: jobs });
+  } catch (error) {
+    console.log(axios.isCancel(error));
+    console.log(error);
+    if (axios.isCancel(error)) return;
+
+    dispatch({ type: ACTIONS.ERROR, payload: error });
   }
 };
 
@@ -36,11 +58,17 @@ const useFetchJobs = (params, page) => {
     error: false,
   });
 
-  return {
-    jobs: [],
-    loading: false,
-    error: false,
-  };
+  useEffect(() => {
+    const cancelToken = axios.CancelToken.source();
+    dispatch({ type: ACTIONS.MAKE_REQUEST });
+    getJobs(page, params, dispatch, cancelToken);
+
+    return () => {
+      cancelToken.cancel();
+    };
+  }, [params, page]);
+
+  return state;
 };
 
 export default useFetchJobs;
