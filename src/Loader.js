@@ -1,15 +1,12 @@
 import React from 'react';
+import { Spinner } from 'react-bootstrap';
 
 const Loader = () => {
   return (
-    <div className='group'>
-      <div className='bigSqr'>
-        <div className='square first'></div>
-        <div className='square second'></div>
-        <div className='square third'></div>
-        <div className='square fourth'></div>
-      </div>
-      <div className='text'>loading</div>
+    <div className='loader-spinner-area'>
+      <Spinner animation='border' role='status' variant='primary'>
+        <span className='sr-only'>Loading...</span>
+      </Spinner>
     </div>
   );
 };
